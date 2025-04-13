@@ -1,5 +1,14 @@
-import React, { useState } from "react";
-import ProductCard from "./components/produkter"; // Importer produktkortet
+import { useState } from "react";
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+import Footer from "./components/Footer"; // Import Footer
+import Header from "./components/Header"; // Header til navigation
+import Home from "./page/Home"; // Hjemmeside
+import Login from "./page/Login"; // Login-side
+import ProductCard from "./components/ProductCard"; // For at vise produkter
+import About from "./page/About"; // Om os side
+import Products from "./page/Products";
+
+
 import './App.css';
 
 function App() {
@@ -28,43 +37,42 @@ function App() {
   const [count, setCount] = useState(0); // Denne kan vi beholde for eventuel interaktivitet senere
 
   return (
-    <>
+    // Tilføj basename her
+    <Router basename="/amazirian-/"> 
       {/* Header (Navigation) */}
-      <header className="bg-blue-600 text-white p-4">
-        <nav className="flex justify-between items-center">
-          <span className="text-2xl font-bold">Amazirian</span>
-          <div className="space-x-4">
-            <span>Hjem</span>
-            <span>Butik</span>
-            <span>Opret Vare</span>
-            <span>Min Konto</span>
-          </div>
-        </nav>
-      </header>
+      <Header />
 
       {/* Main content */}
       <main className="p-6">
         <h1 className="text-4xl font-semibold text-center mb-8">Velkommen til Amazirian</h1>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {products.map((product, index) => (
-            <ProductCard
-              key={index}
-              title={product.title}
-              description={product.description}
-              price={product.price}
-              imageUrl={product.imageUrl}
-            />
-          ))}
-        </div>
+        
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/products" element={<Products />} />
+          <Route path="/sample-products" element={
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    {products.map((product, index) => (
+      <ProductCard
+        key={index}
+        title={product.title}
+        description={product.description}
+        price={product.price}
+        imageUrl={product.imageUrl}
+      />
+    ))}
+  </div>
+} />
+        </Routes>
       </main>
 
-      {/* Interaktiv knap (count functionality) */}
-      <div className="card p-6 text-center">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-      </div>
-    </>
+     
+
+      {/* Footer */}
+      <Footer />
+    </Router>
   );
 }
 
