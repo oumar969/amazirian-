@@ -35,7 +35,13 @@ function App() {
   ];
 
   const [count, setCount] = useState(0); // Denne kan vi beholde for eventuel interaktivitet senere
-
+// Add a button to increase the count
+return (
+  <div>
+    <h1>{count}</h1>
+    <button onClick={() => setCount(count + 1)}>Increase Count</button>
+  </div>
+);
   return (
     // Tilføj basename her
     <Router basename="/amazirian-/"> 

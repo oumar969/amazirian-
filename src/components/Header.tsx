@@ -1,9 +1,9 @@
 // src/components/Header.tsx
-import React, { useState } from "react";
+//import { useState } from "react";
 import { Link } from "react-router-dom"; 
 
 const Header: React.FC = () => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+ // const [isLoggedIn, setIsLoggedIn] = useState(false);
   /*const [messageCount, setMessageCount] = useState(5); // Demoformål
 
   const handleLoginClick = () => {
