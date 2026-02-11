@@ -23,8 +23,58 @@ export function AddProductModal({ open, categories, onClose, onAdd }: AddProduct
   const [price, setPrice] = useState<string>("");
   const [currency, setCurrency] = useState<"DKK" | "SYP">("DKK");
   const [imageUrl, setImageUrl] = useState("");
+  const [imageMode, setImageMode] = useState<"url" | "upload">("url");
+  const [uploadedImage, setUploadedImage] = useState<string>("");
+  const [imageError, setImageError] = useState<string>("");
   const [category, setCategory] = useState<ProductCategory>(categories[0] ?? "Andet");
   const [prime, setPrime] = useState(true);
+
+  async function fileToDataUrl(file: File): Promise<string> {
+    const maxSide = 1200;
+    const quality = 0.82;
+
+    // Decode
+    let bitmap: ImageBitmap | null = null;
+    if ("createImageBitmap" in window) {
+      try {
+        bitmap = await createImageBitmap(file);
+      } catch {
+        bitmap = null;
+      }
+    }
+
+    const img = bitmap
+      ? null
+      : await new Promise<HTMLImageElement>((resolve, reject) => {
+          const el = new Image();
+          el.onload = () => resolve(el);
+          el.onerror = () => reject(new Error("Kunne ikke læse billedet."));
+          el.src = URL.createObjectURL(file);
+        });
+
+    const width = bitmap ? bitmap.width : img!.naturalWidth;
+    const height = bitmap ? bitmap.height : img!.naturalHeight;
+
+    const scale = Math.min(1, maxSide / Math.max(width, height));
+    const outW = Math.max(1, Math.round(width * scale));
+    const outH = Math.max(1, Math.round(height * scale));
+
+    const canvas = document.createElement("canvas");
+    canvas.width = outW;
+    canvas.height = outH;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas ikke understøttet.");
+
+    ctx.drawImage(bitmap ?? img!, 0, 0, outW, outH);
+
+    if (img) URL.revokeObjectURL(img.src);
+    if (bitmap) bitmap.close();
+
+    // Use jpeg for broad compatibility.
+    return canvas.toDataURL("image/jpeg", quality);
+  }
+
+  const effectiveImageUrl = imageMode === "upload" ? uploadedImage : imageUrl;
 
   const canSubmit = useMemo(() => {
     const numericPrice = Number(price);
@@ -33,9 +83,9 @@ export function AddProductModal({ open, categories, onClose, onAdd }: AddProduct
       description.trim().length >= 8 &&
       Number.isFinite(numericPrice) &&
       numericPrice > 0 &&
-      imageUrl.trim().length >= 8
+      effectiveImageUrl.trim().length >= 8
     );
-  }, [title, description, price, imageUrl]);
+  }, [title, description, price, effectiveImageUrl]);
 
   if (!open) return null;
 
@@ -74,7 +124,7 @@ export function AddProductModal({ open, categories, onClose, onAdd }: AddProduct
               description: description.trim(),
               price: Number(price),
               currency,
-              imageUrl: imageUrl.trim(),
+              imageUrl: effectiveImageUrl.trim(),
               category,
               prime,
             });
@@ -82,6 +132,9 @@ export function AddProductModal({ open, categories, onClose, onAdd }: AddProduct
             setDescription("");
             setPrice("");
             setImageUrl("");
+            setUploadedImage("");
+            setImageError("");
+            setImageMode("url");
             setCurrency("DKK");
             setCategory(categories[0] ?? "Andet");
             setPrime(true);
@@ -159,15 +212,107 @@ export function AddProductModal({ open, categories, onClose, onAdd }: AddProduct
             </label>
           </div>
 
-          <label className="grid gap-1">
-            <span className="text-sm font-semibold text-slate-900">Billede URL</span>
-            <input
-              value={imageUrl}
-              onChange={(e) => setImageUrl(e.target.value)}
-              className="rounded-xl border border-slate-200 px-3 py-2 outline-none ring-indigo-500/30 focus:ring"
-              placeholder="https://…"
-            />
-          </label>
+          <div className="grid gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <span className="text-sm font-semibold text-slate-900">Billede</span>
+              <div className="inline-flex overflow-hidden rounded-xl border border-slate-200 bg-white">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageMode("url");
+                    setImageError("");
+                  }}
+                  className={`px-3 py-2 text-sm font-semibold ${
+                    imageMode === "url" ? "bg-slate-900 text-white" : "text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  URL
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setImageMode("upload");
+                    setImageError("");
+                  }}
+                  className={`px-3 py-2 text-sm font-semibold ${
+                    imageMode === "upload" ? "bg-slate-900 text-white" : "text-slate-900 hover:bg-slate-50"
+                  }`}
+                >
+                  Upload
+                </button>
+              </div>
+            </div>
+
+            {imageMode === "url" ? (
+              <label className="grid gap-1">
+                <span className="text-xs font-semibold text-slate-700">Billede URL</span>
+                <input
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="rounded-xl border border-slate-200 px-3 py-2 outline-none ring-indigo-500/30 focus:ring"
+                  placeholder="https://…"
+                />
+              </label>
+            ) : (
+              <div className="grid gap-2">
+                <label className="grid gap-1">
+                  <span className="text-xs font-semibold text-slate-700">Upload billede</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      setImageError("");
+
+                      // Rough guardrail for localStorage.
+                      if (file.size > 6_000_000) {
+                        setImageError("Billedet er for stort. Vælg et billede under 6MB.");
+                        setUploadedImage("");
+                        return;
+                      }
+
+                      try {
+                        const dataUrl = await fileToDataUrl(file);
+                        if (dataUrl.length > 2_000_000) {
+                          setImageError("Billedet er for stort efter komprimering. Vælg et mindre billede.");
+                          setUploadedImage("");
+                          return;
+                        }
+                        setUploadedImage(dataUrl);
+                      } catch (err) {
+                        setImageError(err instanceof Error ? err.message : "Kunne ikke uploade billedet.");
+                        setUploadedImage("");
+                      }
+                    }}
+                    className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm"
+                  />
+                </label>
+                <p className="text-xs text-slate-500">
+                  Upload gemmes lokalt (demo) og fungerer på GitHub Pages.
+                </p>
+              </div>
+            )}
+
+            {imageError && (
+              <p className="text-sm font-semibold text-rose-700" role="alert">
+                {imageError}
+              </p>
+            )}
+
+            {effectiveImageUrl.trim().length >= 8 && (
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                <div className="aspect-[4/3]">
+                  <img
+                    src={effectiveImageUrl}
+                    alt="Preview"
+                    className="h-full w-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
 
           <div className="flex items-center justify-end gap-3 pt-2">
             <button
