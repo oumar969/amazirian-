@@ -3,11 +3,15 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+<<<<<<< HEAD
   "homepage": "https://oumar969.github.io/amazirian-",
+=======
+>>>>>>> 4c2fdb7995a4f16843835339ab4ce1cd60dd5a98
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
+<<<<<<< HEAD
     "preview": "vite preview",
     "predeploy": "npm run build",
     "deploy": "gh-pages -d dist"
@@ -16,6 +20,13 @@
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.5.0"
+=======
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+>>>>>>> 4c2fdb7995a4f16843835339ab4ce1cd60dd5a98
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",
@@ -25,7 +36,10 @@
     "eslint": "^9.21.0",
     "eslint-plugin-react-hooks": "^5.1.0",
     "eslint-plugin-react-refresh": "^0.4.19",
+<<<<<<< HEAD
     "gh-pages": "^6.3.0",
+=======
+>>>>>>> 4c2fdb7995a4f16843835339ab4ce1cd60dd5a98
     "globals": "^15.15.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",

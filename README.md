@@ -1,6 +1,9 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 # amazirian-
 =======
+=======
+>>>>>>> 4c2fdb7995a4f16843835339ab4ce1cd60dd5a98
 # React + TypeScript + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
@@ -55,4 +58,7 @@ export default tseslint.config({
   },
 })
 ```
+<<<<<<< HEAD
 >>>>>>> 4c2fdb7 (Initial commit)
+=======
+>>>>>>> 4c2fdb7995a4f16843835339ab4ce1cd60dd5a98
