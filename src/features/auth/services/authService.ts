@@ -11,9 +11,12 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-const API_BASE: string =
-  (import.meta as unknown as { env?: Record<string, string | undefined> }).env
-    ?.VITE_API_BASE ?? "/api";
+const ENV = (import.meta as unknown as { env?: Record<string, unknown> }).env ?? {};
+
+const API_BASE: string = (ENV.VITE_API_BASE as string | undefined) ?? "/api";
+const IS_PROD = Boolean(ENV.PROD);
+// If we deploy frontend-only (GitHub Pages) and no API base was configured, use local demo auth.
+const USE_LOCAL_AUTH_ONLY = IS_PROD && (ENV.VITE_API_BASE == null || ENV.VITE_API_BASE === "" || API_BASE === "/api");
 
 async function jsonFetch<T>(input: string, init?: RequestInit): Promise<T> {
   const res = await fetch(input, {
@@ -51,6 +54,10 @@ export const authService = {
   },
 
   async fetchCurrentUser(): Promise<User | null> {
+    if (USE_LOCAL_AUTH_ONLY) {
+      return authStorage.getUser();
+    }
+
     const token = authStorage.getToken();
     if (!token) return null;
 
@@ -76,6 +83,19 @@ export const authService = {
   async login(username: string, password: string): Promise<LoginResponse> {
     if (!username.trim() || !password.trim()) {
       throw new Error("Udfyld både brugernavn og adgangskode.");
+    }
+
+    if (USE_LOCAL_AUTH_ONLY) {
+      await sleep(150);
+      const user: User = {
+        id: crypto?.randomUUID?.() ?? makeToken(),
+        username: username.trim(),
+        displayName: username.trim(),
+      };
+      const token = makeToken();
+      authStorage.setToken(token);
+      authStorage.setUser(user);
+      return { user, token };
     }
 
     try {
@@ -110,6 +130,8 @@ export const authService = {
     const token = authStorage.getToken();
     authStorage.clear();
     if (!token) return;
+
+    if (USE_LOCAL_AUTH_ONLY) return;
 
     void fetch(`${API_BASE}/auth/logout`, {
       method: "POST",

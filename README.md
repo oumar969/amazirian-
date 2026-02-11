@@ -57,3 +57,5 @@ On first start, the API seeds a demo user:
 ## Deploy (GitHub Pages)
 
 - Deploy `dist/` to GitHub Pages: `npm run deploy`
+
+Note: GitHub Pages er frontend-only. Login kører som demo (localStorage) medmindre du sætter `VITE_API_BASE` til en hosted API.
