@@ -25,6 +25,9 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Workaround npm optional-deps bug
+        run: rm -f package-lock.json
+
       - name: Install
         run: npm install --include=optional
 
