@@ -1,64 +1,59 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
+## Products
+
+### 2) Produkter (katalog)
+
+**Acceptkriterier**
+
+- Produkter kan ses uden login.
+- Tilføjede produkter overlever refresh.
+- Klik på produkt åbner detaljeside.
+
+#### Produkt-detaljeside (efter “Se produkt”)
+
+Når brugeren klikker “Se produkt” i kataloget, skal detaljesiden være moderne og give flere muligheder (Amazon-style).
+
+**Krav (moderne muligheder)**
+
+- Galleri: stort billede + (senere) thumbnails/zoom
+- Tydelig pris, rating, kategori, “Prime”-badge
+- Levering/returnering info (kort)
+- Knapper: “Læg i kurv” + “Køb nu”
+- Breadcrumbs tilbage til katalog + kategori
+- Relaterede produkter sektion (kan starte som mock/udvalgt)
+- Anmeldelser-sektion (kan starte som mock)
+
+**Acceptkriterier**
+
+- URL `/products/:id` virker og kan åbnes direkte.
+- “Tilbage til katalog” virker.
+- Detaljesiden har tydelig CTA og føles moderne på mobil + desktop.
+
+### 3) Login / Auth (API + DB)
+
 # amazirian-
-=======
-=======
->>>>>>> 4c2fdb7995a4f16843835339ab4ce1cd60dd5a98
-# React + TypeScript + Vite
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript marketplace.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Install dependencies: `npm install`
+- Start API (SQLite DB): `npm run api:dev`
+- Start dev server: `npm run dev`
+- Build: `npm run build`
+- Preview build: `npm run preview`
 
-## Expanding the ESLint configuration
+## Database
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- Local SQLite database file: `server/dev.sqlite`
+- API base URL (dev): `http://localhost:3001/api`
 
-```js
-export default tseslint.config({
-  extends: [
-    // Remove ...tseslint.configs.recommended and replace with this
-    ...tseslint.configs.recommendedTypeChecked,
-    // Alternatively, use this for stricter rules
-    ...tseslint.configs.strictTypeChecked,
-    // Optionally, add this for stylistic rules
-    ...tseslint.configs.stylisticTypeChecked,
-  ],
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
-```
+### Demo login
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+On first start, the API seeds a demo user:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- Username: `demo`
+- Password: `demo`
 
-export default tseslint.config({
-  plugins: {
-    // Add the react-x and react-dom plugins
-    'react-x': reactX,
-    'react-dom': reactDom,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended typescript rules
-    ...reactX.configs['recommended-typescript'].rules,
-    ...reactDom.configs.recommended.rules,
-  },
-})
-```
-<<<<<<< HEAD
->>>>>>> 4c2fdb7 (Initial commit)
-=======
->>>>>>> 4c2fdb7995a4f16843835339ab4ce1cd60dd5a98
+## Deploy (GitHub Pages)
+
+- Deploy `dist/` to GitHub Pages: `npm run deploy`

@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 280" role="img" aria-label="Amazirian Online Marketplace">
+  <defs>
+    <linearGradient id="gSwoosh" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#27b3ff"/>
+      <stop offset="1" stop-color="#0a66c2"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Mark (stylized A + swoosh + stars). This is an original SVG inspired by the provided logo. -->
+  <g transform="translate(40,32)">
+    <!-- A base -->
+    <path d="M60 196 L108 60 L156 196 Z" fill="#0b0b0b"/>
+    <rect x="88" y="140" width="40" height="18" rx="9" fill="#ffffff" opacity="0.9"/>
+
+    <!-- Green top 'roof' -->
+    <path d="M88 58 L120 24 L152 58 L138 58 L120 40 L102 58 Z" fill="#0f8f41"/>
+
+    <!-- Swoosh + arrow -->
+    <path d="M10 118 C54 60, 128 44, 198 58" fill="none" stroke="url(#gSwoosh)" stroke-width="18" stroke-linecap="round"/>
+    <path d="M198 58 L182 46 L186 66 Z" fill="#0a66c2"/>
+
+    <!-- Stars -->
+    <g fill="#d81b2a" transform="translate(56,116)">
+      <path d="M0 -10 L2.6 -2.6 L10 0 L2.6 2.6 L0 10 L-2.6 2.6 L-10 0 L-2.6 -2.6 Z"/>
+    </g>
+    <g fill="#d81b2a" transform="translate(92,132)">
+      <path d="M0 -9 L2.3 -2.3 L9 0 L2.3 2.3 L0 9 L-2.3 2.3 L-9 0 L-2.3 -2.3 Z"/>
+    </g>
+    <g fill="#d81b2a" transform="translate(128,116)">
+      <path d="M0 -10 L2.6 -2.6 L10 0 L2.6 2.6 L0 10 L-2.6 2.6 L-10 0 L-2.6 -2.6 Z"/>
+    </g>
+  </g>
+
+  <!-- Wordmark -->
+  <g transform="translate(250,88)">
+    <text x="0" y="70" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="88" font-weight="800" fill="#14264b" letter-spacing="0.5">Amazirian</text>
+    <text x="6" y="122" font-family="ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial" font-size="28" font-weight="700" fill="#1aa0d8" letter-spacing="1.2">ONLINE MARKETPLACE</text>
+  </g>
+</svg>
