@@ -30,6 +30,7 @@ const da: Dictionary = {
   "lang.ar": "AR",
 
   "nav.about": "Om",
+  "nav.menu": "Menu",
   "nav.login": "Log ind",
   "nav.logout": "Log ud",
   "nav.cart": "Kurv",
@@ -306,6 +307,7 @@ const en: Dictionary = {
   "lang.ar": "AR",
 
   "nav.about": "About",
+  "nav.menu": "Menu",
   "nav.login": "Login",
   "nav.logout": "Logout",
   "nav.cart": "Cart",
@@ -582,6 +584,7 @@ const ar: Dictionary = {
   "lang.ar": "AR",
 
   "nav.about": "حول",
+  "nav.menu": "القائمة",
   "nav.login": "تسجيل الدخول",
   "nav.logout": "تسجيل الخروج",
   "nav.cart": "السلة",

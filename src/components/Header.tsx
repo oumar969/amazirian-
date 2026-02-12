@@ -1,6 +1,6 @@
 // src/components/Header.tsx
 //import { useState } from "react";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 import { useAuth } from "../features/auth/hooks/useAuth";
@@ -50,6 +50,8 @@ const Header = () => {
   const [category, setCategory] = useState<HeaderCategory>(CATEGORY_ALL);
   const [query, setQuery] = useState<string>("");
   const [useRemoteLogo, setUseRemoteLogo] = useState(true);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!location.pathname.startsWith("/products")) return;
@@ -61,6 +63,32 @@ const Header = () => {
     setQuery(q);
     setCategory(CATEGORY_VALUES.includes(cat) ? cat : CATEGORY_ALL);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    setIsMenuOpen(false);
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (!isMenuOpen) return;
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") setIsMenuOpen(false);
+    }
+
+    function onPointerDown(e: MouseEvent | PointerEvent) {
+      const el = menuRef.current;
+      if (!el) return;
+      if (e.target instanceof Node && el.contains(e.target)) return;
+      setIsMenuOpen(false);
+    }
+
+    window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("pointerdown", onPointerDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("pointerdown", onPointerDown);
+    };
+  }, [isMenuOpen]);
 
   const categoryLinks = useMemo(() => {
     return CATEGORY_VALUES.filter((c) => c !== CATEGORY_ALL);
@@ -131,9 +159,9 @@ const Header = () => {
           </div>
         </form>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {/* Mobile language select */}
-          <div className="sm:hidden">
+          <div className="xl:hidden">
             <select
               value={language}
               onChange={(e) => setLanguage(e.target.value as typeof language)}
@@ -148,7 +176,7 @@ const Header = () => {
           </div>
 
           {/* Desktop segmented toggle */}
-          <div className="hidden items-center sm:flex">
+          <div className="hidden items-center xl:flex">
             <div className="inline-flex overflow-hidden rounded-xl border border-white/15 bg-white/5">
               {([
                 { code: "da", labelKey: "lang.da" },
@@ -171,16 +199,98 @@ const Header = () => {
             </div>
           </div>
 
-          <NavLink
-            to="/about"
-            className={({ isActive }) =>
-              `hidden rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 sm:inline-flex ${
-                isActive ? "bg-white/10" : ""
-              }`
-            }
-          >
-            {t("nav.about")}
-          </NavLink>
+          {/* Compact menu for smaller screens */}
+          <div ref={menuRef} className="relative xl:hidden">
+            <button
+              type="button"
+              onClick={() => setIsMenuOpen((v) => !v)}
+              className={`inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 ${
+                isMenuOpen ? "bg-white/10" : ""
+              }`}
+              aria-label={t("nav.menu")}
+              aria-expanded={isMenuOpen}
+            >
+              <span className="text-lg leading-none">☰</span>
+              <span className="hidden sm:inline">{t("nav.menu")}</span>
+            </button>
+
+            {isMenuOpen && (
+              <div
+                className={`absolute ${dir === "rtl" ? "left-0" : "right-0"} mt-2 w-56 overflow-hidden rounded-2xl border border-white/10 bg-slate-950 shadow-xl`}
+                role="menu"
+              >
+                <NavLink
+                  to="/about"
+                  className={({ isActive }) =>
+                    `block px-4 py-3 text-sm font-semibold hover:bg-white/10 ${isActive ? "bg-white/10" : ""}`
+                  }
+                  role="menuitem"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  {t("nav.about")}
+                </NavLink>
+                <NavLink
+                  to="/orders"
+                  className={({ isActive }) =>
+                    `flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 ${
+                      isActive ? "bg-white/10" : ""
+                    }`
+                  }
+                  role="menuitem"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>{t("nav.orders")}</span>
+                  {orders.length > 0 && (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-500 px-1 text-[11px] font-extrabold text-white">
+                      {orders.length}
+                    </span>
+                  )}
+                </NavLink>
+                <NavLink
+                  to="/favorites"
+                  className={({ isActive }) =>
+                    `flex items-center justify-between gap-3 px-4 py-3 text-sm font-semibold hover:bg-white/10 ${
+                      isActive ? "bg-white/10" : ""
+                    }`
+                  }
+                  role="menuitem"
+                  onClick={() => setIsMenuOpen(false)}
+                >
+                  <span>{t("nav.favorites")}</span>
+                  {favoritesCount > 0 && (
+                    <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-extrabold text-white">
+                      {favoritesCount}
+                    </span>
+                  )}
+                </NavLink>
+                <div className="h-px bg-white/10" />
+                {!isAuthenticated ? (
+                  <NavLink
+                    to="/login"
+                    className={({ isActive }) =>
+                      `block px-4 py-3 text-sm font-semibold hover:bg-white/10 ${isActive ? "bg-white/10" : ""}`
+                    }
+                    role="menuitem"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {t("nav.login")}
+                  </NavLink>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsMenuOpen(false);
+                      logout();
+                    }}
+                    className="block w-full px-4 py-3 text-left text-sm font-semibold hover:bg-white/10"
+                    role="menuitem"
+                  >
+                    {t("nav.logout")}
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
 
           <NavLink
             to="/favorites"
@@ -204,7 +314,7 @@ const Header = () => {
             >
               <path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.6l-1-1a5.5 5.5 0 0 0-7.8 7.8l1 1L12 21l7.8-7.6 1-1a5.5 5.5 0 0 0 0-7.8z" />
             </svg>
-            <span className="hidden sm:inline">{t("nav.favorites")}</span>
+            <span className="hidden xl:inline">{t("nav.favorites")}</span>
             {favoritesCount > 0 && (
               <span
                 className={`absolute ${badgePositionClass} -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-rose-500 px-1 text-[11px] font-extrabold text-white`}
@@ -217,7 +327,7 @@ const Header = () => {
           <NavLink
             to="/orders"
             className={({ isActive }) =>
-              `inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 ${
+              `relative inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 ${
                 isActive ? "bg-white/10" : ""
               }`
             }
@@ -241,7 +351,7 @@ const Header = () => {
               <path d="M3 12h.01" />
               <path d="M3 18h.01" />
             </svg>
-            <span className="hidden sm:inline">{t("nav.orders")}</span>
+            <span className="hidden xl:inline">{t("nav.orders")}</span>
             {orders.length > 0 && (
               <span
                 className={`absolute ${badgePositionClass} -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-500 px-1 text-[11px] font-extrabold text-white`}
@@ -255,18 +365,48 @@ const Header = () => {
             <NavLink
               to="/login"
               className={({ isActive }) =>
-                `rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 ${isActive ? "bg-white/10" : ""}`
+                `inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10 ${
+                  isActive ? "bg-white/10" : ""
+                }`
               }
             >
-              {t("nav.login")}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+              >
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+              <span className="hidden xl:inline">{t("nav.login")}</span>
             </NavLink>
           ) : (
             <button
               type="button"
               onClick={logout}
-              className="rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10"
+              className="inline-flex items-center gap-2 rounded-xl px-3 py-2 text-sm font-semibold hover:bg-white/10"
             >
-              {t("nav.logout")}
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span className="hidden xl:inline">{t("nav.logout")}</span>
             </button>
           )}
 
@@ -290,7 +430,7 @@ const Header = () => {
               <circle cx="20" cy="21" r="1" />
               <path d="M1 1h4l2.6 13.4a2 2 0 0 0 2 1.6h9.7a2 2 0 0 0 2-1.6L23 6H6" />
             </svg>
-            <span className="hidden sm:inline">{t("nav.cart")}</span>
+            <span className="hidden xl:inline">{t("nav.cart")}</span>
             {itemCount > 0 && (
               <span className={`absolute ${badgePositionClass} -top-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-500 px-1 text-[11px] font-extrabold text-white`}>
                 {itemCount}
@@ -328,10 +468,17 @@ const Header = () => {
               {t(`category.${c}`)}
             </Link>
           ))}
-          <div className="ml-auto hidden items-center gap-3 text-xs text-white/60 lg:flex">
-            <span>{t("header.fastDelivery")}</span>
-            <span>•</span>
-            <span>{t("header.returns")}</span>
+          <div className="ml-auto hidden items-center gap-2 text-xs text-white/60 lg:flex">
+            <NavLink
+              to="/about"
+              className={({ isActive }) =>
+                `whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold text-white/80 hover:bg-white/10 ${
+                  isActive ? "bg-white/10" : ""
+                }`
+              }
+            >
+              {t("nav.about")}
+            </NavLink>
           </div>
         </div>
       </div>
