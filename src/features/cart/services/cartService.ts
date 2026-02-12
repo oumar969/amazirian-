@@ -13,7 +13,21 @@ export const cartService = {
     return cartStorage.load();
   },
 
-  add(product: Product, quantity = 1): CartItem[] {
+  add(
+    product: Pick<
+      Product,
+      | "id"
+      | "title"
+      | "price"
+      | "currency"
+      | "imageUrl"
+      | "category"
+      | "prime"
+      | "rating"
+      | "ratingCount"
+    >,
+    quantity = 1,
+  ): CartItem[] {
     const qty = clampQuantity(quantity);
     const items = cartStorage.load();
     const existing = items.find((i) => i.productId === product.id);

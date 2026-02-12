@@ -1,25 +1,30 @@
 import { Link, useNavigate } from "react-router-dom";
 
 import { useCart } from "../features/cart/hooks/useCart";
+import { useT } from "../features/i18n/hooks/useT";
+import { formatMoney } from "../shared/money";
 
 export default function Cart() {
+  const { t } = useT();
   const navigate = useNavigate();
   const { items, itemCount, subtotal, setQuantity, removeFromCart, clearCart } = useCart();
+
+  const currency = items[0]?.snapshot.currency ?? "SYP";
 
   return (
     <div className="bg-slate-50">
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="flex items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Kurv</h1>
-            <p className="mt-1 text-sm text-slate-600">{itemCount} varer</p>
+            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("cart.title")}</h1>
+            <p className="mt-1 text-sm text-slate-600">{t("cart.items", { count: itemCount })}</p>
           </div>
           <div className="flex items-center gap-2">
             <Link
               to="/products"
               className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
             >
-              Fortsæt shopping
+              {t("cart.continue")}
             </Link>
             {items.length > 0 && (
               <button
@@ -27,7 +32,7 @@ export default function Cart() {
                 onClick={clearCart}
                 className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
               >
-                Ryd kurv
+                {t("cart.clear")}
               </button>
             )}
           </div>
@@ -35,12 +40,12 @@ export default function Cart() {
 
         {items.length === 0 ? (
           <div className="mt-6 rounded-3xl border border-slate-200 bg-white p-8 shadow-sm">
-            <p className="text-sm text-slate-700">Din kurv er tom.</p>
+            <p className="text-sm text-slate-700">{t("cart.empty")}</p>
             <Link
               to="/products"
               className="mt-4 inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800"
             >
-              Gå til produkter
+              {t("cart.goToProducts")}
             </Link>
           </div>
         ) : (
@@ -70,13 +75,13 @@ export default function Cart() {
                         <div className="mt-1 text-xs text-slate-600">{item.snapshot.category}</div>
                       </div>
                       <div className="shrink-0 text-sm font-semibold text-slate-900">
-                        {(item.snapshot.price * item.quantity).toLocaleString()} {item.snapshot.currency}
+                        {formatMoney(item.snapshot.price * item.quantity, item.snapshot.currency)}
                       </div>
                     </div>
 
                     <div className="mt-3 flex items-center gap-3">
                       <label className="text-xs font-semibold text-slate-700" htmlFor={`qty-${item.productId}`}>
-                        Antal
+                        {t("cart.quantity")}
                       </label>
                       <input
                         id={`qty-${item.productId}`}
@@ -92,7 +97,7 @@ export default function Cart() {
                         onClick={() => removeFromCart(item.productId)}
                         className="rounded-xl px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-50"
                       >
-                        Fjern
+                        {t("cart.remove")}
                       </button>
                     </div>
                   </div>
@@ -101,26 +106,26 @@ export default function Cart() {
             </div>
 
             <div className="h-fit rounded-3xl border border-slate-200 bg-white p-5 shadow-sm">
-              <div className="text-sm font-semibold text-slate-900">Oversigt</div>
+              <div className="text-sm font-semibold text-slate-900">{t("cart.summary")}</div>
 
               <div className="mt-3 flex items-center justify-between text-sm text-slate-700">
-                <span>Subtotal</span>
+                <span>{t("cart.subtotal")}</span>
                 <span className="font-semibold text-slate-900">
-                  {subtotal.toLocaleString()} {items[0]?.snapshot.currency ?? ""}
+                  {formatMoney(subtotal, currency)}
                 </span>
               </div>
-              <div className="mt-1 text-xs text-slate-500">Levering beregnes i checkout.</div>
+              <div className="mt-1 text-xs text-slate-500">{t("cart.shippingNote")}</div>
 
               <button
                 type="button"
                 onClick={() => navigate("/checkout")}
                 className="mt-4 w-full rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
               >
-                Gå til checkout
+                {t("cart.checkout")}
               </button>
 
               <div className="mt-4 text-xs text-slate-500">
-                Ved at fortsætte accepterer du vores vilkår.
+                {t("cart.terms")}
               </div>
             </div>
           </div>

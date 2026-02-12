@@ -4,9 +4,14 @@ import { useSearchParams } from "react-router-dom";
 import { AddProductModal } from "../features/products/components/AddProductModal";
 import { ProductGridCard } from "../features/products/components/ProductGridCard";
 import { ProductListRow } from "../features/products/components/ProductListRow";
-import { useProductsViewModel } from "../features/products/viewmodels/useProductsViewModel";
+import type { ProductCategory } from "../features/products/models/Product";
+import { type ProductsSort, useProductsViewModel } from "../features/products/viewmodels/useProductsViewModel";
+import { useT } from "../features/i18n/hooks/useT";
+
+const ALL = "Alle" as const;
 
 export default function Products() {
+  const { t } = useT();
   const vm = useProductsViewModel();
   const [searchParams] = useSearchParams();
 
@@ -14,13 +19,13 @@ export default function Products() {
 
   useEffect(() => {
     const q = searchParams.get("q") ?? "";
-    const cat = searchParams.get("cat") ?? "Alle";
+    const cat = searchParams.get("cat") ?? ALL;
 
     setQuery(q);
-    if (cat === "Alle") {
-      setCategory("Alle" as any);
-    } else if (vm.categories.includes(cat as any)) {
-      setCategory(cat as any);
+    if (cat === ALL) {
+      setCategory(ALL);
+    } else if (vm.categories.includes(cat as ProductCategory)) {
+      setCategory(cat as ProductCategory);
     }
   }, [searchParams, setQuery, setCategory, vm.categories]);
 
@@ -43,9 +48,9 @@ export default function Products() {
         <div className="mx-auto max-w-7xl px-6 py-5">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">Produkter</h1>
+              <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{t("products.title")}</h1>
               <p className="mt-1 text-sm text-slate-600">
-                {vm.state.total.toLocaleString()} produkter — søg, filtrér og sortér som en rigtig marketplace.
+                {t("products.subtitle", { count: vm.state.total.toLocaleString() })}
               </p>
             </div>
 
@@ -54,7 +59,7 @@ export default function Products() {
                 <input
                   value={vm.state.query}
                   onChange={(e) => vm.actions.setQuery(e.target.value)}
-                  placeholder="Søg efter produkter…"
+                  placeholder={t("products.searchPlaceholder")}
                   className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 pr-10 text-sm outline-none ring-indigo-500/30 focus:ring sm:w-[360px]"
                 />
                 <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-slate-400">
@@ -67,7 +72,7 @@ export default function Products() {
                 onClick={() => vm.actions.setAddOpen(true)}
                 className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
               >
-                + Tilføj produkt
+                {t("products.add")}
               </button>
             </div>
           </div>
@@ -76,14 +81,17 @@ export default function Products() {
             <div className="flex flex-wrap items-center gap-2">
               <select
                 value={vm.state.category}
-                onChange={(e) => vm.actions.setCategory(e.target.value as any)}
+                onChange={(e) => vm.actions.setCategory(e.target.value as ProductCategory | typeof ALL)}
                 className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
-                aria-label="Kategori"
+                aria-label={t("header.category")}
               >
-                <option value="Alle">Alle kategorier</option>
+                <option value="Alle">{t("products.allCategories")}</option>
                 {vm.categories.map((c) => (
                   <option key={c} value={c}>
-                    {c}
+                    {(() => {
+                      const label = t(`category.${c}`);
+                      return label === `category.${c}` ? c : label;
+                    })()}
                   </option>
                 ))}
               </select>
@@ -91,13 +99,13 @@ export default function Products() {
               <input
                 value={vm.state.minPrice}
                 onChange={(e) => vm.actions.setMinPrice(e.target.value)}
-                placeholder="Min pris"
+                placeholder={t("products.minPrice")}
                 className="w-28 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
               />
               <input
                 value={vm.state.maxPrice}
                 onChange={(e) => vm.actions.setMaxPrice(e.target.value)}
-                placeholder="Max pris"
+                placeholder={t("products.maxPrice")}
                 className="w-28 rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
               />
 
@@ -107,7 +115,7 @@ export default function Products() {
                   checked={vm.state.onlyPrime}
                   onChange={(e) => vm.actions.setOnlyPrime(e.target.checked)}
                 />
-                Kun Prime
+                {t("products.onlyPrime")}
               </label>
 
               <button
@@ -116,22 +124,22 @@ export default function Products() {
                 className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-50"
                 title="Nulstil demo-katalog"
               >
-                Nulstil katalog
+                {t("products.reset")}
               </button>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
               <select
                 value={vm.state.sort}
-                onChange={(e) => vm.actions.setSort(e.target.value as any)}
+                onChange={(e) => vm.actions.setSort(e.target.value as ProductsSort)}
                 className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none ring-indigo-500/30 focus:ring"
                 aria-label="Sortering"
               >
-                <option value="relevance">Relevans</option>
-                <option value="newest">Nyeste</option>
-                <option value="rating">Bedst rating</option>
-                <option value="price_asc">Pris: lav → høj</option>
-                <option value="price_desc">Pris: høj → lav</option>
+                <option value="relevance">{t("products.sort.relevance")}</option>
+                <option value="newest">{t("products.sort.newest")}</option>
+                <option value="rating">{t("products.sort.rating")}</option>
+                <option value="price_asc">{t("products.sort.priceAsc")}</option>
+                <option value="price_desc">{t("products.sort.priceDesc")}</option>
               </select>
 
               <div className="inline-flex overflow-hidden rounded-xl border border-slate-200 bg-white">
@@ -142,7 +150,7 @@ export default function Products() {
                     vm.state.view === "grid" ? "bg-slate-900 text-white" : "text-slate-900 hover:bg-slate-50"
                   }`}
                 >
-                  Grid
+                  {t("products.view.grid")}
                 </button>
                 <button
                   type="button"
@@ -151,7 +159,7 @@ export default function Products() {
                     vm.state.view === "list" ? "bg-slate-900 text-white" : "text-slate-900 hover:bg-slate-50"
                   }`}
                 >
-                  Liste
+                  {t("products.view.list")}
                 </button>
               </div>
 
@@ -174,7 +182,7 @@ export default function Products() {
       <div className="mx-auto max-w-7xl px-6 py-8">
         {vm.products.length === 0 ? (
           <div className="rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm">
-            <p className="text-sm text-slate-600">Ingen produkter matcher dine filtre.</p>
+            <p className="text-sm text-slate-600">{t("products.empty")}</p>
           </div>
         ) : vm.state.view === "grid" ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -193,7 +201,7 @@ export default function Products() {
         {/* Pagination */}
         <div className="mt-8 flex flex-col items-center justify-between gap-3 sm:flex-row">
           <p className="text-sm text-slate-600">
-            Side {vm.state.page} af {vm.state.totalPages}
+            {t("products.page", { page: vm.state.page, totalPages: vm.state.totalPages })}
           </p>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -203,7 +211,7 @@ export default function Products() {
               disabled={vm.state.page <= 1}
               className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 disabled:opacity-50"
             >
-              Forrige
+              {t("products.prev")}
             </button>
 
             {pageNumbers[0] !== 1 && (
@@ -251,7 +259,7 @@ export default function Products() {
               disabled={vm.state.page >= vm.state.totalPages}
               className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-900 disabled:opacity-50"
             >
-              Næste
+              {t("products.next")}
             </button>
           </div>
         </div>

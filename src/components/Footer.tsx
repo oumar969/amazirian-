@@ -1,19 +1,23 @@
+import { Link } from "react-router-dom";
+import { useT } from "../features/i18n/hooks/useT";
 
 const Footer = () => {
+  const { t } = useT();
+
   return (
     <footer className="bg-blue-600 text-white p-6 mt-6">
       <div className="max-w-screen-xl mx-auto text-center">
         <div className="mb-4">
-          <p className="text-xl font-bold">Amazirian</p>
-          <p>&copy; 2025 Amazirian. Alle rettigheder forbeholdes.</p>
+          <p className="text-xl font-bold">{t("footer.brand")}</p>
+          <p>{t("footer.rights")}</p>
         </div>
-        <div className="flex justify-center space-x-6 mb-4">
-          <a href="/om-os" className="hover:text-gray-300">Om os</a>
-          <a href="/kontakt" className="hover:text-gray-300">Kontakt</a>
-          <a href="/faq" className="hover:text-gray-300">FAQ</a>
-          <a href="/betingelser" className="hover:text-gray-300">Handelsbetingelser</a>
+        <div className="flex flex-wrap justify-center gap-6 mb-4">
+          <Link to="/about" className="hover:text-gray-200">{t("footer.link.about")}</Link>
+          <Link to="/products" className="hover:text-gray-200">{t("footer.link.products")}</Link>
+          <Link to="/favorites" className="hover:text-gray-200">{t("footer.link.favorites")}</Link>
+          <Link to="/cart" className="hover:text-gray-200">{t("footer.link.cart")}</Link>
         </div>
-        <div className="flex justify-center space-x-6 mb-4">
+        <div className="flex justify-center gap-6 mb-4">
           <a href="https://facebook.com/amazirian" target="_blank" rel="noopener noreferrer">
             <img src="https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg" alt="Facebook" className="w-6 h-6" />
           </a>
@@ -25,8 +29,16 @@ const Footer = () => {
           </a>
         </div>
         <div>
-          <input type="email" placeholder="Tilmeld dig nyhedsbrev" className="px-4 py-2 rounded-l-lg" />
-          <button className="bg-white text-blue-600 px-4 py-2 rounded-r-lg">Tilmeld</button>
+          <div className="mx-auto inline-flex max-w-md overflow-hidden rounded-xl bg-white shadow-sm">
+            <input
+              type="email"
+              placeholder={t("footer.newsletterPlaceholder")}
+              className="w-64 px-4 py-2 text-slate-900 outline-none"
+            />
+            <button type="button" className="bg-white/90 text-blue-700 px-4 py-2 font-semibold hover:bg-white">
+              {t("footer.subscribe")}
+            </button>
+          </div>
         </div>
       </div>
     </footer>

@@ -1,5 +1,4 @@
 import {
-  createContext,
   useCallback,
   useEffect,
   useMemo,
@@ -8,16 +7,8 @@ import {
 } from "react";
 
 import type { User } from "./models/User";
+import { AuthContext, type AuthContextValue } from "./AuthContextBase";
 import { authService } from "./services/authService";
-
-export type AuthContextValue = {
-  user: User | null;
-  isAuthenticated: boolean;
-  login: (username: string, password: string) => Promise<void>;
-  logout: () => void;
-};
-
-export const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(() => authService.getCurrentUser());

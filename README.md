@@ -59,3 +59,24 @@ On first start, the API seeds a demo user:
 - Deploy `dist/` to GitHub Pages: `npm run deploy`
 
 Note: GitHub Pages er frontend-only. Login kører som demo (localStorage) medmindre du sætter `VITE_API_BASE` til en hosted API.
+
+## Mobile (Flutter)
+
+Flutter appen ligger i mappen `mobile/`.
+
+### Kør lokalt
+
+- Tjek setup: `flutter doctor`
+- Install dependencies: `cd mobile` → `flutter pub get`
+- Kør på Android emulator / device: `flutter run`
+- Kør som web (hurtig test): `flutter run -d chrome`
+
+### API URL (vigtigt på emulator)
+
+Som standard bruger appen `http://10.0.2.2:3001/api` (Android emulator → din PC).
+
+Du kan override med:
+
+- `flutter run --dart-define=API_BASE=http://10.0.2.2:3001/api`
+
+Konfig ligger i `mobile/lib/config/app_config.dart`.

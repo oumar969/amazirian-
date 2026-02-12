@@ -6,7 +6,7 @@ import { productCatalog } from "../services/productCatalog";
 export type ProductsView = "grid" | "list";
 export type ProductsSort = "relevance" | "price_asc" | "price_desc" | "rating" | "newest";
 
-const ALL: "Alle" = "Alle";
+const ALL = "Alle" as const;
 
 function uniqueCategories(products: Product[]): ProductCategory[] {
   const set = new Set<ProductCategory>();
@@ -76,6 +76,7 @@ export function useProductsViewModel() {
   }, [filtered, currentPage, pageSize]);
 
   function addProduct(input: {
+    sellerName: string;
     title: string;
     description: string;
     price: number;
@@ -85,6 +86,7 @@ export function useProductsViewModel() {
     prime: boolean;
   }) {
     const created = productCatalog.add({
+      sellerName: input.sellerName,
       title: input.title,
       description: input.description,
       price: input.price,

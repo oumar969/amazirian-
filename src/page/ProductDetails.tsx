@@ -2,14 +2,21 @@ import { useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 import { useCart } from "../features/cart/hooks/useCart";
+import { useFavorites } from "../features/favorites/hooks/useFavorites";
+import { useT } from "../features/i18n/hooks/useT";
 import { ProductGridCard } from "../features/products/components/ProductGridCard";
 import { Stars } from "../features/products/components/Stars";
 import { productCatalog } from "../features/products/services/productCatalog";
+import { formatMoney } from "../shared/money";
+import { openWhatsAppShare } from "../shared/share";
+import { buildAppUrl } from "../shared/url";
 
 export default function ProductDetails() {
+  const { t } = useT();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { addToCart } = useCart();
+  const fav = useFavorites();
   const [added, setAdded] = useState(false);
 
   const allProducts = useMemo(() => productCatalog.list(), []);
@@ -24,17 +31,25 @@ export default function ProductDetails() {
       .slice(0, 4);
   }, [allProducts, product]);
 
+  const moreFromSeller = useMemo(() => {
+    if (!product) return [];
+    return allProducts
+      .filter((p) => p.id !== product.id && p.sellerId === product.sellerId)
+      .sort((a, b) => b.rating - a.rating)
+      .slice(0, 4);
+  }, [allProducts, product]);
+
   if (!product) {
     return (
       <div className="mx-auto max-w-4xl px-6 py-10">
         <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <h1 className="text-xl font-semibold text-slate-900">Produkt ikke fundet</h1>
-          <p className="mt-2 text-sm text-slate-600">Måske er det blevet nulstillet i kataloget.</p>
+          <h1 className="text-xl font-semibold text-slate-900">{t("product.notFound")}</h1>
+          <p className="mt-2 text-sm text-slate-600">{t("product.notFoundHint")}</p>
           <Link
             to="/products"
             className="mt-6 inline-flex items-center justify-center rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white"
           >
-            Tilbage til produkter
+            {t("product.backToProducts")}
           </Link>
         </div>
       </div>
@@ -48,10 +63,14 @@ export default function ProductDetails() {
       <div className="mx-auto max-w-6xl px-6 py-8">
         <div className="mb-5 flex items-center gap-2 text-sm text-slate-600">
           <Link to="/products" className="hover:underline">
-            Produkter
+            {t("products.title")}
           </Link>
           <span className="text-slate-400">/</span>
           <span className="text-slate-900">{product.category}</span>
+          <span className="text-slate-400">/</span>
+          <Link to={`/seller/${encodeURIComponent(product.sellerId)}`} className="text-indigo-600 hover:underline">
+            {product.sellerName}
+          </Link>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -86,14 +105,26 @@ export default function ProductDetails() {
               <Stars value={product.rating} />
               <span className="text-sm text-slate-600">{product.rating.toFixed(1)} / 5</span>
               <span className="text-sm text-slate-400">•</span>
-              <span className="text-sm text-slate-600">{product.ratingCount.toLocaleString()} anmeldelser</span>
+              <span className="text-sm text-slate-600">
+                {t("product.reviewsCount", { count: product.ratingCount.toLocaleString() })}
+              </span>
             </div>
 
             <div className="mt-4 text-3xl font-semibold text-slate-900">
-              {product.price.toLocaleString()} {product.currency}
+              {formatMoney(product.price, product.currency)}
             </div>
 
             <p className="mt-4 text-sm leading-relaxed text-slate-700">{product.description}</p>
+
+            <div className="mt-4 text-sm text-slate-700">
+              <span className="text-slate-500">{t("product.soldBy")} </span>
+              <Link
+                to={`/seller/${encodeURIComponent(product.sellerId)}`}
+                className="font-semibold text-indigo-600 hover:underline"
+              >
+                {product.sellerName}
+              </Link>
+            </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               <button
@@ -105,7 +136,7 @@ export default function ProductDetails() {
                 }}
                 className="rounded-2xl bg-slate-900 px-4 py-3 text-sm font-semibold text-white hover:bg-slate-800"
               >
-                {added ? "Tilføjet ✓" : "Læg i kurv"}
+                {added ? t("product.added") : t("product.addToCart")}
               </button>
               <button
                 type="button"
@@ -115,17 +146,41 @@ export default function ProductDetails() {
                 }}
                 className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-50"
               >
-                Køb nu
+                {t("product.buyNow")}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => fav.toggle(product)}
+                className={`rounded-2xl border px-4 py-3 text-sm font-semibold transition ${
+                  fav.isFavorite(product.id)
+                    ? "border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100"
+                    : "border-slate-200 bg-white text-slate-900 hover:bg-slate-50"
+                }`}
+              >
+                {fav.isFavorite(product.id) ? t("favorites.removeAction") : t("favorites.addAction")}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const url = buildAppUrl(`/products/${product.id}`);
+                  const text = `${product.title}\n${formatMoney(product.price, product.currency)}\n${url}`;
+                  openWhatsAppShare(text);
+                }}
+                className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 hover:bg-emerald-100"
+              >
+                {t("share.whatsapp")}
               </button>
             </div>
 
             <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
               <div className="flex items-center justify-between">
-                <span>Levering</span>
+                <span>{t("product.delivery")}</span>
                 <span className="font-semibold">1–2 dage</span>
               </div>
               <div className="mt-2 flex items-center justify-between">
-                <span>Returnering</span>
+                <span>{t("product.returns")}</span>
                 <span className="font-semibold">30 dage</span>
               </div>
             </div>
@@ -135,21 +190,21 @@ export default function ProductDetails() {
                 to="/products"
                 className="text-sm font-semibold text-indigo-600 hover:underline"
               >
-                ← Tilbage til katalog
+                {t("product.backToCatalog")}
               </Link>
             </div>
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-slate-900">Anmeldelser</h2>
+              <h2 className="text-lg font-semibold text-slate-900">{t("product.reviews")}</h2>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Stars value={product.rating} />
                 <span className="font-semibold text-slate-900">{product.rating.toFixed(1)}</span>
                 <span className="text-slate-400">•</span>
-                <span>{product.ratingCount.toLocaleString()} total</span>
+                <span>{t("product.total", { count: product.ratingCount.toLocaleString() })}</span>
               </div>
             </div>
 
@@ -173,12 +228,29 @@ export default function ProductDetails() {
           </div>
 
           <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-900">Relaterede produkter</h2>
-            <p className="mt-1 text-sm text-slate-600">Mere fra {product.category}</p>
+            <h2 className="text-lg font-semibold text-slate-900">{t("product.moreFromSellerTitle")}</h2>
+            <p className="mt-1 text-sm text-slate-600">{t("product.moreFromSeller", { seller: product.sellerName })}</p>
+
+            {moreFromSeller.length === 0 ? (
+              <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
+                {t("product.noMoreFromSeller")}
+              </div>
+            ) : (
+              <div className="mt-5 grid gap-4 sm:grid-cols-2">
+                {moreFromSeller.map((p) => (
+                  <ProductGridCard key={p.id} product={p} />
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-900">{t("product.related")}</h2>
+            <p className="mt-1 text-sm text-slate-600">{t("product.moreFrom", { category: product.category })}</p>
 
             {related.length === 0 ? (
               <div className="mt-5 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700">
-                Ingen relaterede produkter lige nu.
+                {t("product.noRelated")}
               </div>
             ) : (
               <div className="mt-5 grid gap-4 sm:grid-cols-2">

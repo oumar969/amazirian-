@@ -49,7 +49,6 @@ if ((existingUserCount?.count ?? 0) === 0) {
     demoUser.createdAt,
   );
 
-  // eslint-disable-next-line no-console
   console.log("Seeded demo user: username=demo password=demo");
 }
 
@@ -171,6 +170,5 @@ app.post("/api/auth/logout", async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
   console.log(`API listening on http://localhost:${PORT}`);
 });

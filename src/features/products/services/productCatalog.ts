@@ -1,4 +1,5 @@
 import type { Product, ProductCategory } from "../models/Product";
+import { slugify } from "../../../shared/slug";
 
 const STORAGE_KEY = "amazirian.products.v1";
 
@@ -30,6 +31,9 @@ function isProduct(value: unknown): value is Product {
 
   return (
     typeof v.id === "string" &&
+    // seller fields are migrated from older localStorage versions
+    (v.sellerId === undefined || typeof v.sellerId === "string") &&
+    (v.sellerName === undefined || typeof v.sellerName === "string") &&
     typeof v.title === "string" &&
     typeof v.description === "string" &&
     typeof v.price === "number" &&
@@ -41,6 +45,12 @@ function isProduct(value: unknown): value is Product {
     typeof v.prime === "boolean" &&
     typeof v.createdAt === "string"
   );
+}
+
+function normalizeSeller(p: Product): Product {
+  const sellerName = (p.sellerName || "Amazirian").trim() || "Amazirian";
+  const sellerId = (p.sellerId || slugify(sellerName) || "amazirian").trim() || "amazirian";
+  return { ...p, sellerId, sellerName };
 }
 
 function uuid(): string {
@@ -126,38 +136,53 @@ function seedProducts(): Product[] {
   const now = Date.now();
   const list: Product[] = [];
 
+  const sellers = [
+    "Damascus Market",
+    "Aleppo Style",
+    "Latakia Home",
+    "Homs Electronics",
+    "Hama Books",
+    "Tartus Sports",
+    "Amazirian",
+  ];
+
   for (let i = 0; i < 72; i++) {
     const category = pick(rand, categories);
     const item = pick(rand, itemsByCategory[category]);
     const name = `${pick(rand, words)} ${item}`;
+    const sellerName = pick(rand, sellers);
+    const sellerId = slugify(sellerName) || "amazirian";
 
-    const basePrice =
+    // Syria-friendly seeded prices (SYP). This is demo data.
+    const basePriceSyp =
       category === "Elektronik"
-        ? 799
+        ? 1_800_000
         : category === "Tøj"
-          ? 199
+          ? 350_000
           : category === "Bøger"
-            ? 149
+            ? 120_000
             : category === "Hjem"
-              ? 299
+              ? 550_000
               : category === "Skønhed"
-                ? 129
+                ? 220_000
                 : category === "Legetøj"
-                  ? 249
-                  : 179;
+                  ? 300_000
+                  : 250_000;
 
-    const price = Math.round(basePrice * (0.75 + rand() * 2.2));
+    const price = Math.round(basePriceSyp * (0.7 + rand() * 1.8));
     const rating = Math.round((3.6 + rand() * 1.3) * 10) / 10;
     const ratingCount = Math.floor(12 + rand() * 2500);
     const prime = rand() > 0.35;
 
     list.push({
       id: uuid(),
+      sellerId,
+      sellerName,
       title: name,
       description:
         "Høj kvalitet, hurtig levering og god pris. Perfekt til hverdagen — og ser godt ud i kurven.",
       price,
-      currency: "DKK",
+      currency: "SYP",
       imageUrl: pick(rand, imagePool),
       category,
       rating: clamp(rating, 0, 5),
@@ -173,7 +198,10 @@ function seedProducts(): Product[] {
 function load(): Product[] {
   const parsed = safeParseJson(localStorage.getItem(STORAGE_KEY));
   if (Array.isArray(parsed) && parsed.every(isProduct)) {
-    return parsed;
+    const normalized = (parsed as Product[]).map(normalizeSeller);
+    // Migrate older versions forward so seller pages always work.
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(normalized));
+    return normalized;
   }
 
   const seeded = seedProducts();
@@ -190,15 +218,24 @@ export const productCatalog = {
     return load();
   },
 
-  add(input: Omit<Product, "id" | "createdAt" | "rating" | "ratingCount" | "prime"> & Partial<Pick<Product, "rating" | "ratingCount" | "prime">>): Product {
+  add(
+    input: Omit<Product, "id" | "createdAt" | "rating" | "ratingCount" | "prime" | "sellerId"> &
+      Partial<Pick<Product, "rating" | "ratingCount" | "prime">> &
+      Partial<Pick<Product, "sellerName">>,
+  ): Product {
     const products = load();
+
+    const sellerName = (input.sellerName ?? "Amazirian").trim() || "Amazirian";
+    const sellerId = slugify(sellerName) || "amazirian";
 
     const product: Product = {
       id: uuid(),
+      sellerId,
+      sellerName,
       title: input.title.trim(),
       description: input.description.trim(),
       price: input.price,
-      currency: input.currency ?? "DKK",
+      currency: input.currency ?? "SYP",
       imageUrl: input.imageUrl.trim(),
       category: input.category,
       rating: clamp(input.rating ?? 4.2, 0, 5),

@@ -5,10 +5,13 @@ import ProductCard from "./components/ProductCard";
 import About from "./page/About";
 import Cart from "./page/Cart";
 import Checkout from "./page/Checkout";
+import Favorites from "./page/Favorites";
 import Home from "./page/Home";
 import Login from "./page/Login";
+import Orders from "./page/Orders";
 import ProductDetails from "./page/ProductDetails";
 import Products from "./page/Products";
+import Seller from "./page/Seller";
 
 import "./App.css";
 
@@ -47,8 +50,11 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetails />} />
+            <Route path="/seller/:sellerId" element={<Seller />} />
             <Route path="/cart" element={<Cart />} />
             <Route path="/checkout" element={<Checkout />} />
+            <Route path="/favorites" element={<Favorites />} />
+            <Route path="/orders" element={<Orders />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
             <Route

@@ -10,6 +10,8 @@ export type ProductCategory =
 
 export type Product = {
   id: string;
+  sellerId: string;
+  sellerName: string;
   title: string;
   description: string;
   price: number;
