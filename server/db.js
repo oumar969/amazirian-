@@ -23,9 +23,17 @@ export async function openDb() {
       username TEXT NOT NULL UNIQUE,
       displayName TEXT NOT NULL,
       passwordHash TEXT NOT NULL,
+      isAdmin INTEGER NOT NULL DEFAULT 0,
       createdAt INTEGER NOT NULL
     );
   `);
+
+  // Lightweight migration for existing dev.sqlite created before isAdmin existed.
+  const userColumns = await db.all("PRAGMA table_info(users)");
+  const hasIsAdmin = userColumns?.some((c) => c?.name === "isAdmin");
+  if (!hasIsAdmin) {
+    await db.exec("ALTER TABLE users ADD COLUMN isAdmin INTEGER NOT NULL DEFAULT 0;");
+  }
 
   await db.exec(`
     CREATE TABLE IF NOT EXISTS sessions (
@@ -36,6 +44,28 @@ export async function openDb() {
       FOREIGN KEY (userId) REFERENCES users(id) ON DELETE CASCADE
     );
   `);
+
+  await db.exec(`
+    CREATE TABLE IF NOT EXISTS products (
+      id TEXT PRIMARY KEY,
+      sellerId TEXT NOT NULL,
+      sellerName TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      price REAL NOT NULL,
+      currency TEXT NOT NULL,
+      imageUrl TEXT NOT NULL,
+      category TEXT NOT NULL,
+      prime INTEGER NOT NULL,
+      rating REAL NOT NULL,
+      ratingCount INTEGER NOT NULL,
+      createdAt TEXT NOT NULL
+    );
+  `);
+
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_products_sellerId ON products(sellerId);`);
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);`);
+  await db.exec(`CREATE INDEX IF NOT EXISTS idx_products_createdAt ON products(createdAt);`);
 
   return db;
 }
